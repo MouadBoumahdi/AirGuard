@@ -1,18 +1,17 @@
-import Header from './components/Header';
-import HeroSection from './components/HeroSection';
-import PrecisionSection from './components/PrecisionSection';
-import StewardshipSection from './components/StewardshipSection';
-import Footer from './components/Footer';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import LandingPage from './pages/LandingPage';
+import Login from './pages/Login';
+import Register from './pages/Register';
 
 function App() {
   return (
-    <div className="min-h-screen bg-white text-gray-800 flex flex-col antialiased">
-      <Header />
-      <HeroSection />
-      <PrecisionSection />
-      <StewardshipSection />
-      <Footer />
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
