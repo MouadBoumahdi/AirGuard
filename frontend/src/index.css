@@ -5,7 +5,7 @@
 @theme {
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-heading: 'Outfit', 'Inter', system-ui, sans-serif;
-  
+  --font-cause: 'Cause', cursive;
   --color-brand-green: #00875A;
   --color-brand-green-dark: #005C3D;
   --color-brand-green-light: #E8F8F0;
