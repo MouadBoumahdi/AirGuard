@@ -45,38 +45,38 @@ class AuthController extends Controller
         ], 201);
     }
 
-    /**
-     * Admin-Only: Create Manager accounts
-     */
-    public function createManager(Request $request)
-    {
-        // Guard clause: Only allow actual admins
-        if (Auth::guard('api')->user()->role !== 'admin') {
-            return response()->json(['error' => 'Unauthorized. Only admins can create managers.'], 403);
-        }
+    // /**
+    //  * Admin-Only: Create Manager accounts
+    //  */
+    // public function createManager(Request $request)
+    // {
+    //     // Guard clause: Only allow actual admins
+    //     if (Auth::guard('api')->user()->role !== 'admin') {
+    //         return response()->json(['error' => 'Unauthorized. Only admins can create managers.'], 403);
+    //     }
 
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6',
-        ]);
+    //     $validator = Validator::make($request->all(), [
+    //         'name' => 'required|string|max:255',
+    //         'email' => 'required|string|email|max:255|unique:users',
+    //         'password' => 'required|string|min:6',
+    //     ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
-        }
+    //     if ($validator->fails()) {
+    //         return response()->json($validator->errors(), 400);
+    //     }
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => 'manager', // Hardcoded safeguard: always manager
-        ]);
+    //     $user = User::create([
+    //         'name' => $request->name,
+    //         'email' => $request->email,
+    //         'password' => Hash::make($request->password),
+    //         'role' => 'manager', // Hardcoded safeguard: always manager
+    //     ]);
 
-        return response()->json([
-            'message' => "Manager account successfully created.",
-            'user' => $user
-        ], 201);
-    }
+    //     return response()->json([
+    //         'message' => "Manager account successfully created.",
+    //         'user' => $user
+    //     ], 201);
+    // }
 
     /**
      * User Login
