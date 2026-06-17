@@ -9,7 +9,6 @@ const API = axios.create({
   },
 });
 
-// 2. This interceptor automatically injects the token into requests if it exists in browser memory
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {

@@ -26,14 +26,7 @@ export default function LoginForm() {
 
       alert(`Welcome back, ${name}! Your role is: ${role}`);
       
-      // 4. Redirect the user based on their dashboard role
-      if (role === 'admin') {
-        window.location.href = '/admin-dashboard';
-      } else if (role === 'manager') {
-        window.location.href = '/manager-dashboard';
-      } else {
-        window.location.href = '/viewer-dashboard';
-      }
+   
 
     } catch (err) {
       // Catch any validation or unauthorized errors from Laravel

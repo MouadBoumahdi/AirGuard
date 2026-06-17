@@ -35,8 +35,7 @@ export default function RegisterForm() {
       localStorage.setItem('role', role);
 
       alert('Account registered successfully as a Viewer!');
-      window.location.href = '/viewer-dashboard';
-
+   
     } catch (err) {
       if (err.response && err.response.data) {
         const data = err.response.data;

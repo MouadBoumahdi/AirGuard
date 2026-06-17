@@ -10,10 +10,7 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    /**
-     * Public Registration
-     * Forcefully registers every new user as a 'viewer'.
-     */
+   
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -45,42 +42,7 @@ class AuthController extends Controller
         ], 201);
     }
 
-    // /**
-    //  * Admin-Only: Create Manager accounts
-    //  */
-    // public function createManager(Request $request)
-    // {
-    //     // Guard clause: Only allow actual admins
-    //     if (Auth::guard('api')->user()->role !== 'admin') {
-    //         return response()->json(['error' => 'Unauthorized. Only admins can create managers.'], 403);
-    //     }
-
-    //     $validator = Validator::make($request->all(), [
-    //         'name' => 'required|string|max:255',
-    //         'email' => 'required|string|email|max:255|unique:users',
-    //         'password' => 'required|string|min:6',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json($validator->errors(), 400);
-    //     }
-
-    //     $user = User::create([
-    //         'name' => $request->name,
-    //         'email' => $request->email,
-    //         'password' => Hash::make($request->password),
-    //         'role' => 'manager', // Hardcoded safeguard: always manager
-    //     ]);
-
-    //     return response()->json([
-    //         'message' => "Manager account successfully created.",
-    //         'user' => $user
-    //     ], 201);
-    // }
-
-    /**
-     * User Login
-     */
+   
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -109,9 +71,7 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * User Logout
-     */
+     
     public function logout()
     {
         Auth::guard('api')->logout();

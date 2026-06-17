@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import AuthPage from './components/Auth/AuthPage';
+import AdminDashboard from './components/Dashboard/AdminDashboard';
 import Logo from './assets/logo.png'; 
 
+
+
 export default function App() {
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   const [userRole, setUserRole] = useState('');
-  const [openFaq, setOpenFaq] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -16,42 +20,73 @@ export default function App() {
     }
   }, []);
 
-  // Reads memory cleanly on page loads
+
+
   const [view, setView] = useState(() => {
     return localStorage.getItem('activeView') || 'home';
   });
 
-  // Changes screens and saves to storage at the same time
   const handleSetView = (newView) => {
     setView(newView);
     localStorage.setItem('activeView', newView);
   };
 
-  const handleGoToDashboard = () => {
-    if (userRole === 'admin') window.location.href = '/admin-dashboard';
-    else if (userRole === 'manager') window.location.href = '/manager-dashboard';
-    else window.location.href = '/viewer-dashboard';
+ 
+
+
+
+
+  const renderDashboardByRole = () => {
+    switch (userRole) {
+      case 'admin':
+        return <AdminDashboard />;
+      case 'manager':
+        return <ManagerDashboard />;
+      case 'viewer':
+      default:
+        return <ViewerDashboard />;
+    }
   };
 
+
+  
+  // Si vue Auth active
   if (view === 'login' || view === 'register') {
     return <AuthPage initialView={view} onClose={() => handleSetView('home')} />;
   }
 
-  const faqs = [
-    {
-      question: "How does the automatic factory shut-off work?",
-      answer: "Our system monitors the air quality around the clock. If factory emissions rise and the wind starts blowing those emissions directly toward city neighborhoods, the system automatically pauses factory machinery until the wind changes direction or the air clears up."
-    },
-    {
-      question: "Who can see this data?",
-      answer: "Everyone! Anyone can create a free account to check live air quality maps. Factory supervisors and system administrators have extra access tools to manage system safety settings."
-    },
-    {
-      question: "Does a person have to press the stop button?",
-      answer: "No. The system acts instantly on its own to prevent delays, but factory managers are immediately notified and can safely turn the machinery back on once the air is completely clear."
-    }
-  ];
+ 
 
+  // Dashboard
+  if (view === 'dashboard') {
+    return (
+      <div className="min-h-screen bg-slate-100 flex flex-col justify-between">
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6">
+          <div className="flex items-center gap-2">
+            <img src={Logo} alt="Logo" className="h-5 object-contain" />
+            <span className="font-bold text-slate-900 text-sm">AirGuard Workspace</span>
+          </div>
+          <button 
+            onClick={() => handleSetView('home')} 
+            className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
+          >
+            ← Main Site
+          </button>
+        </header>
+
+        <div className="flex-1">
+          {renderDashboardByRole()}
+        </div>
+
+        <footer className="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
+          © 2026 OCP Safety Internal Panel. All rights reserved.
+        </footer>
+      </div>
+    );
+  }
+
+
+// Home page
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 antialiased font-sans flex flex-col justify-between">
       
@@ -69,7 +104,7 @@ export default function App() {
           
           <div className="flex items-center gap-4">
             {isLoggedIn ? (
-              <button onClick={handleGoToDashboard} className="text-sm font-semibold bg-emerald-800 text-white px-4 py-2 rounded-xl hover:bg-emerald-700 cursor-pointer transition-colors">
+              <button onClick={() => handleSetView('dashboard')} className="text-sm font-semibold bg-emerald-800 text-white px-4 py-2 rounded-xl hover:bg-emerald-700 cursor-pointer transition-colors">
                 Go to Dashboard →
               </button>
             ) : (
@@ -100,7 +135,7 @@ export default function App() {
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
             {isLoggedIn ? (
-              <button onClick={handleGoToDashboard} className="bg-emerald-800 text-white font-semibold text-sm px-8 py-3.5 rounded-xl shadow-md hover:bg-emerald-700 cursor-pointer transition-colors">
+              <button onClick={() => handleSetView('dashboard')} className="bg-emerald-800 text-white font-semibold text-sm px-8 py-3.5 rounded-xl shadow-md hover:bg-emerald-700 cursor-pointer transition-colors">
                 Open Dashboard Panel
               </button>
             ) : (
@@ -205,106 +240,14 @@ export default function App() {
           </div>
         </div>
 
-        {/* HOW IT WORKS */}
-        <div className="w-full border-t border-slate-200 pt-16 mb-24">
-          <div className="text-center max-w-xl mx-auto mb-16">
-            <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">4-Step Action Pipeline</span>
-            <h2 className="text-3xl font-extrabold text-slate-900 mt-1">From detection to safety in under a second</h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center flex flex-col items-center">
-              <div className="h-12 w-12 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full font-bold text-base flex items-center justify-center mb-3">🔍</div>
-              <h4 className="font-bold text-sm text-slate-900">1. Spot a Spike</h4>
-              <p className="text-xs text-slate-500 mt-1 max-w-xs">Sensors automatically flag any unusual smoke or emissions right at the source.</p>
-            </div>
-            <div className="text-center flex flex-col items-center">
-              <div className="h-12 w-12 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full font-bold text-base flex items-center justify-center mb-3">💨</div>
-              <h4 className="font-bold text-sm text-slate-900">2. Track the Wind</h4>
-              <p className="text-xs text-slate-500 mt-1 max-w-xs">The system tracks exactly where the air is blowing to find out where smoke will travel.</p>
-            </div>
-            <div className="text-center flex flex-col items-center">
-              <div className="h-12 w-12 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full font-bold text-base flex items-center justify-center mb-3">⚠️</div>
-              <h4 className="font-bold text-sm text-slate-900">3. Evaluate Risk</h4>
-              <p className="text-xs text-slate-500 mt-1 max-w-xs">If the smoke is moving directly towards local residential homes, the system triggers an alert.</p>
-            </div>
-            <div className="text-center flex flex-col items-center">
-              <div className="h-12 w-12 bg-rose-50 border border-rose-200 text-rose-600 rounded-full font-bold text-base flex items-center justify-center mb-3 animate-pulse">🛑</div>
-              <h4 className="font-bold text-sm text-slate-900">4. Stop Production</h4>
-              <p className="text-xs text-slate-500 mt-1 max-w-xs">The system immediately safely pauses factory production lines to keep our communities completely safe.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* ACCOUNT PERMISSIONS */}
-        <div className="w-full border-t border-slate-200 pt-16 mb-24">
-          <div className="text-center max-w-xl mx-auto mb-16">
-            <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Account Permissions</span>
-            <h2 className="text-3xl font-extrabold text-slate-900 mt-1">Simple access settings for everyone</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white border border-slate-200 p-6 rounded-2xl">
-              <span className="bg-emerald-50 text-emerald-700 font-bold text-[10px] tracking-wide uppercase px-2.5 py-0.5 rounded-full">Viewer</span>
-              <h3 className="font-bold text-slate-900 mt-4 mb-2">Public Visitors</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">Can view live air quality maps, monitor safety history, and track active statuses openly.</p>
-            </div>
-            <div className="bg-white border border-slate-200 p-6 rounded-2xl">
-              <span className="bg-sky-50 text-sky-700 font-bold text-[10px] tracking-wide uppercase px-2.5 py-0.5 rounded-full">Manager</span>
-              <h3 className="font-bold text-slate-900 mt-4 mb-2">Factory Supervisors</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">Can check deeper alerts, set safety thresholds, and safely resume production when conditions are clear.</p>
-            </div>
-            <div className="bg-white border border-slate-200 p-6 rounded-2xl">
-              <span className="bg-amber-50 text-amber-700 font-bold text-[10px] tracking-wide uppercase px-2.5 py-0.5 rounded-full">Admin</span>
-              <h3 className="font-bold text-slate-900 mt-4 mb-2">System Administrators</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">Manages the entire platform settings, sets up supervisor accounts, and handles data export reporting logs.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* FAQ ACCORDION */}
-        <div className="w-full border-t border-slate-200 pt-16 max-w-3xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl font-extrabold text-slate-900">Common Questions</h2>
-          </div>
-          <div className="flex flex-col gap-3">
-            {faqs.map((faq, idx) => (
-              <div key={idx} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
-                <button 
-                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                  className="w-full text-left p-5 font-bold text-sm sm:text-base text-slate-800 flex justify-between items-center hover:bg-slate-50/50 cursor-pointer select-none"
-                >
-                  <span>{faq.question}</span>
-                  <span className="text-slate-400 font-bold text-lg">{openFaq === idx ? '−' : '+'}</span>
-                </button>
-                {openFaq === idx && (
-                  <div className="px-5 pb-5 text-xs sm:text-sm text-slate-500 leading-relaxed border-t border-slate-100 pt-3.5 bg-slate-50/10">
-                    {faq.answer}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
+    
       </main>
-
-      {/* FOOTER ACTION STRIP */}
-      <div className="bg-emerald-800 text-white py-12 px-6 text-center">
-        <h2 className="text-2xl font-black">Ready to safeguard our air?</h2>
-        <p className="text-emerald-200 text-xs sm:text-sm mt-1 mb-6">Free viewer accounts are open to everyone. Supervisor parameters are managed by managers.</p>
-        <div className="flex gap-4 justify-center">
-          <button onClick={() => handleSetView('register')} className="bg-white text-emerald-800 font-bold text-xs sm:text-sm px-6 py-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors">
-            Create Free Account
-          </button>
-          <button onClick={() => handleSetView('login')} className="border border-emerald-600 bg-emerald-900/40 font-semibold text-xs sm:text-sm px-6 py-3 rounded-xl hover:bg-emerald-900/60 cursor-pointer transition-colors">
-            Open Control Center
-          </button>
-        </div>
-      </div>
 
       {/* FOOTER */}
       <footer className="bg-slate-950 text-white pt-12 pb-6 px-6">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 border-b border-slate-900 pb-8 mb-6">
           <div className="flex flex-col gap-2">
-            <span className="font-normal text-2xl tracking-normal font-sans text-slate-200 select-none block">
+            <span className="font-normal text-2xl tracking-normal text-slate-200 select-none block">
               Air<span className="text-emerald-400">Guard</span>
             </span>
             <p className="text-xs text-slate-400 leading-relaxed max-w-xs">
@@ -315,7 +258,7 @@ export default function App() {
           <div className="flex flex-col gap-2">
             <h4 className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">System Nav Map</h4>
             <div className="text-xs text-slate-400 flex flex-col gap-2">
-              <a onClick={handleGoToDashboard} className="hover:text-white cursor-pointer hover:underline">Live Data Feed</a>
+              <a onClick={() => handleSetView('dashboard')} className="hover:text-white cursor-pointer hover:underline">Live Data Feed</a>
               <a className="hover:text-white cursor-pointer hover:underline">Safety Records</a>
               <a className="hover:text-white cursor-pointer hover:underline">Sensor Networks</a>
             </div>
