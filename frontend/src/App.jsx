@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AuthPage from './components/Auth/AuthPage';
 import AdminDashboard from './components/Dashboard/AdminDashboard';
+import ViewerDashboard from './components/Dashboard/ViewerDashboard';
 import Logo from './assets/logo.png'; 
 
 
@@ -44,7 +45,15 @@ export default function App() {
         return <ManagerDashboard />;
       case 'viewer':
       default:
-        return <ViewerDashboard />;
+        return <ViewerDashboard 
+        
+        onLogout={() => {
+              setIsLoggedIn(false);         
+              setUserRole('');              
+              handleSetView('home');        
+            }}
+            
+            />;
     }
   };
 
@@ -52,7 +61,17 @@ export default function App() {
   
   // Si vue Auth active
   if (view === 'login' || view === 'register') {
-    return <AuthPage initialView={view} onClose={() => handleSetView('home')} />;
+    return <AuthPage initialView={view} onClose={() => handleSetView('home')} 
+
+            onAuthSuccess={(role) => {
+                  setIsLoggedIn(true);           
+                  setUserRole(role);             
+                  handleSetView('dashboard');    
+                }}
+    />;
+
+
+    
   }
 
  
