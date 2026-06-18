@@ -40,7 +40,14 @@ export default function App() {
   const renderDashboardByRole = () => {
     switch (userRole) {
       case 'admin':
-        return <AdminDashboard />;
+        return <AdminDashboard 
+          onLogout={ () => {
+              setIsLoggedIn(false);
+              setUserRole('');
+              handleSetView('home');
+          }}
+          onNavigateHome={() => handleSetView('home')}
+        />;
       case 'manager':
         return <ManagerDashboard />;
       case 'viewer':
@@ -76,34 +83,9 @@ export default function App() {
 
  
 
-  // Dashboard
-  if (view === 'dashboard') {
-    return (
-      <div className="min-h-screen bg-slate-100 flex flex-col justify-between">
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6">
-          <div className="flex items-center gap-2">
-            <img src={Logo} alt="Logo" className="h-5 object-contain" />
-            <span className="font-bold text-slate-900 text-sm">AirGuard Workspace</span>
-          </div>
-          <button 
-            onClick={() => handleSetView('home')} 
-            className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
-          >
-            ← Main Site
-          </button>
-        </header>
-
-        <div className="flex-1">
-          {renderDashboardByRole()}
-        </div>
-
-        <footer className="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
-          © 2026 OCP Safety Internal Panel. All rights reserved.
-        </footer>
-      </div>
-    );
-  }
-
+ if(view==='dashboard') {
+    return renderDashboardByRole();
+ }
 
 // Home page
   return (
