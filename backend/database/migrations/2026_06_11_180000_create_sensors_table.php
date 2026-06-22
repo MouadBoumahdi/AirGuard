@@ -6,24 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('sensors', function (Blueprint $table) {
+        Schema::create('gas_sensors', function (Blueprint $table) {
             $table->id();
+            $table->string('sensor_name');
             $table->string('location');
-            $table->boolean('is_active')->default(true);
+            $table->enum('status', ['active', 'inactive', 'maintenance'])->default('active');
+            $table->date('last_calibration_date')->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('sensors');
+        Schema::dropIfExists('gas_sensors');
     }
 };

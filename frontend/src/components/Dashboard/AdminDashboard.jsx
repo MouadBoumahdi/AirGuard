@@ -4,17 +4,17 @@ import Logo from '../../assets/logo.png';
 export default function AdminDashboard({ onLogout, onNavigateHome }) {
   const [activeTab, setActiveTab] = useState('users');
 
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+
   const [users, setUsers] = useState([
-    { id: 1, name: 'Dr. Helena Vance', email: 'h.vance@airguard.com', role: 'admin', isActive: true },
     { id: 2, name: 'Mouad Boumahdi', email: 'mouad.dev@airguard.com', role: 'manager', isActive: true },
-    { id: 3, name: 'Anas Alami', email: 'anas@airguard.com', role: 'viewer', isActive: false }
   ]);
 
-  const handleRoleChange = (userId, newRole) => {
-    setUsers(users.map(user => 
-      user.id === userId ? { ...user, role: newRole } : user
-    ));
-  };
+  
 
   const toggleUserStatus = (userId) => {
     setUsers(users.map(user => 
@@ -28,6 +28,12 @@ export default function AdminDashboard({ onLogout, onNavigateHome }) {
     if (onLogout) {
       onLogout();
     }
+  };
+
+  const handlePasswordSubmit = (e) => {
+    e.preventDefault();
+    alert('Password updated successfully! (Frontend state captured)');
+    setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
   };
 
   return (
@@ -78,8 +84,13 @@ export default function AdminDashboard({ onLogout, onNavigateHome }) {
           >
             User Management
           </button>
-          
-         
+
+          <button 
+            onClick={() => setActiveTab('profile')}
+            className={`w-full text-left px-4 py-3 text-sm font-semibold rounded-xl transition-colors cursor-pointer ${activeTab === 'profile' ? 'bg-[#f0fdf4] text-emerald-800' : 'text-slate-500 hover:bg-slate-50'}`}
+          >
+            Profile Settings
+          </button>
         </aside>
 
         <main className="flex-1 space-y-6 h-full">
@@ -120,15 +131,12 @@ export default function AdminDashboard({ onLogout, onNavigateHome }) {
               </div>
 
               <div className="bg-white border border-slate-200/60 rounded-2xl p-4 shadow-xs space-y-4">
-
-
                 <div className="border border-slate-100 rounded-xl overflow-hidden">
                   <table className="w-full text-left border-collapse text-xs">
                     <thead>
                       <tr className="bg-[#fafafa] border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
                         <th className="px-5 py-3">Name</th>
                         <th className="px-5 py-3">Email</th>
-                        <th className="px-5 py-3">Role Selector</th>
                         <th className="px-5 py-3">Account Status</th>
                       </tr>
                     </thead>
@@ -136,27 +144,10 @@ export default function AdminDashboard({ onLogout, onNavigateHome }) {
                       {users.map((user) => (
                         <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="px-5 py-4 text-slate-900 font-bold flex items-center gap-2">
-                            <div className="h-6 w-6 bg-slate-200 rounded-full flex items-center justify-center text-[10px] font-bold text-slate-600">
-                              {user.name.split(' ').map(n => n[0]).join('')}
-                            </div>
                             {user.name}
                           </td>
                           <td className="px-5 py-4 text-slate-400 font-mono">{user.email}</td>
-                          <td className="px-5 py-4">
-                            <select
-                              value={user.role}
-                              onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                              className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-transparent cursor-pointer bg-slate-100 text-slate-700 focus:bg-white focus:border-slate-300 outline-none transition-colors ${
-                                user.role === 'admin' ? 'bg-rose-50 text-rose-700' :
-                                user.role === 'manager' ? 'bg-amber-50 text-amber-700' :
-                                'bg-emerald-50 text-emerald-700'
-                              }`}
-                            >
-                              <option value="admin">Admin</option>
-                              <option value="manager">Manager</option>
-                              <option value="viewer">Viewer</option>
-                            </select>
-                          </td>
+
                           <td className="px-5 py-4">
                             <button
                               onClick={() => toggleUserStatus(user.id)}
@@ -176,6 +167,64 @@ export default function AdminDashboard({ onLogout, onNavigateHome }) {
                 </div>
               </div>
             </>
+          )}
+
+          {activeTab === 'profile' && (
+            <div className="max-w-2xl">
+              <div>
+                <h1 className="text-3xl font-black text-slate-900 tracking-tight">Profile Settings</h1>
+                <p className="text-sm text-slate-500 mt-1.5 leading-relaxed">
+                  Update your administrative account password to maintain server security thresholds.
+                </p>
+              </div>
+
+              <form onSubmit={handlePasswordSubmit} className="mt-8 bg-white border border-slate-200/60 rounded-2xl p-6 shadow-xs space-y-5">
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Current Password</label>
+                  <input 
+                    type="password" 
+                    value={passwordForm.currentPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                    required
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-emerald-600 bg-slate-50/50" 
+                    placeholder="••••••••"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">New Password</label>
+                  <input 
+                    type="password" 
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                    required
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-emerald-600 bg-slate-50/50" 
+                    placeholder="Minimum 8 characters"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Confirm New Password</label>
+                  <input 
+                    type="password" 
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                    required
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-emerald-600 bg-slate-50/50" 
+                    placeholder="••••••••"
+                  />
+                </div>
+
+                <div className="pt-2">
+                  <button 
+                    type="submit"
+                    className="bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-bold px-5 py-3 rounded-xl transition-colors shadow-xs cursor-pointer"
+                  >
+                    Update Password
+                  </button>
+                </div>
+              </form>
+            </div>
           )}
 
         </main>

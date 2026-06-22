@@ -6,27 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('alerts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('sensor_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('threshold_id')->constrained()->cascadeOnDelete();
-            $table->enum('severity_level', ['low', 'medium', 'high', 'critical']);
+            // Links to the specific toxic reading
+            $table->foreignId('air_quality_id')->constrained('air_qualities')->onDelete('cascade');
+            
+            // CRITICAL: Links directly to your EXISTING users table
+            $table->foreignId('manager_id')->nullable()->constrained('users')->onDelete('set null');
+            
+            $table->string('message');
             $table->enum('status', ['active', 'acknowledged', 'resolved'])->default('active');
+            $table->timestamp('triggered_at');
             $table->timestamps();
-
-            // Indexes for querying alerts
-            $table->index('status');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('alerts');
