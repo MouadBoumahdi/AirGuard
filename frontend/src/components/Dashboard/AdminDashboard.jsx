@@ -1,25 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Logo from '../../assets/logo.png'; 
 
 export default function AdminDashboard({ onLogout, onNavigateHome }) {
   const [activeTab, setActiveTab] = useState('users');
+  const [users, setUsers] = useState([]);
+  const [error, setError] = useState(null); 
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
 
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
+  // 1. Fetch Users logic synced exactly with your backend response 'data.users'
+  useEffect(() => {
+    if (activeTab === 'users') {
+      const token = localStorage.getItem('token');
+      fetch('http://localhost:8000/api/admin', {
+        method: 'GET',
+        headers: {
+          'content-type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        }
+      })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('Failed to fetch users');
+        }
+        return res.json();
+      })
+      .then(data => {
+        // Matches your controller response: 'users' => $managers
+        setUsers(data.users || []);
+      })
+      .catch(err => {
+        setError(err.message);
+      });
+    }
+  }, [activeTab]);
 
-  const [users, setUsers] = useState([
-    { id: 2, name: 'Mouad Boumahdi', email: 'mouad.dev@airguard.com', role: 'manager', isActive: true },
-  ]);
-
-  
-
+  // 2. Implemented toggleUserStatus to fire PATCH request to your backend route
   const toggleUserStatus = (userId) => {
-    setUsers(users.map(user => 
-      user.id === userId ? { ...user, isActive: !user.isActive } : user
-    ));
+    const token = localStorage.getItem('token');
+    
+    fetch(`http://localhost:8000/api/admin/toggle-ban/${userId}`, {
+      method: 'PATCH',
+      headers: {
+        'content-type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      }
+    })
+    .then(res => {
+      if (!res.ok) {
+        throw new Error('Failed to update ban status');
+      }
+      return res.json();
+    })
+    .then(data => {
+      // Updates state dynamically using the updated user data from controller response
+      setUsers(users.map(u => u.id === userId ? data.data : u));
+    })
+    .catch(err => {
+      alert(err.message);
+    });
   };
 
   const handleLogoutClick = () => {
@@ -109,6 +147,7 @@ export default function AdminDashboard({ onLogout, onNavigateHome }) {
                 </button>
               </div>
 
+              {/* UNCOMMENTED STATS AND REWIRED TO !is_banned STATUS */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white border border-slate-200/60 p-5 rounded-2xl shadow-xs">
                   <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Platform Users</span>
@@ -118,25 +157,28 @@ export default function AdminDashboard({ onLogout, onNavigateHome }) {
                 <div className="bg-white border border-slate-200/60 p-5 rounded-2xl shadow-xs">
                   <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Active Now</span>
                   <span className="text-2xl font-black text-emerald-600 mt-1 block">
-                    {users.filter(u => u.isActive).length}
+                    {users.filter(u => !u.is_banned).length}
                   </span>
                 </div>
 
                 <div className="bg-white border border-slate-200/60 p-5 rounded-2xl shadow-xs">
                   <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Disabled Users</span>
                   <span className="text-2xl font-black text-rose-600 mt-1 block">
-                    {users.filter(u => !u.isActive).length}
+                    {users.filter(u => u.is_banned).length}
                   </span>
                 </div>
               </div>
 
               <div className="bg-white border border-slate-200/60 rounded-2xl p-4 shadow-xs space-y-4">
+                {error && <p className="text-xs text-rose-600 font-bold text-center">Error: {error}</p>}
+                
                 <div className="border border-slate-100 rounded-xl overflow-hidden">
                   <table className="w-full text-left border-collapse text-xs">
                     <thead>
                       <tr className="bg-[#fafafa] border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
                         <th className="px-5 py-3">Name</th>
                         <th className="px-5 py-3">Email</th>
+                        <th className="px-5 py-3">Role</th>
                         <th className="px-5 py-3">Account Status</th>
                       </tr>
                     </thead>
@@ -147,17 +189,19 @@ export default function AdminDashboard({ onLogout, onNavigateHome }) {
                             {user.name}
                           </td>
                           <td className="px-5 py-4 text-slate-400 font-mono">{user.email}</td>
+                          <td className="px-5 py-4 text-slate-500 uppercase font-semibold tracking-wide">{user.role || 'user'}</td>
 
+                          {/* RE-ENABLED ACCOUNT STATUS TOGGLE BUTTON */}
                           <td className="px-5 py-4">
                             <button
                               onClick={() => toggleUserStatus(user.id)}
                               className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide cursor-pointer border transition-all ${
-                                user.isActive 
-                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' 
+                                !user.is_banned
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
                                   : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
                               }`}
                             >
-                              {user.isActive ? '● Active' : '○ Desactivé'}
+                              {!user.is_banned ? '● Active' : '○ Desactivé'}
                             </button>
                           </td>
                         </tr>
