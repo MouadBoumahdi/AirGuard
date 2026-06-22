@@ -67,4 +67,37 @@ public function index()
             'data' => $manager
         ], 200);
     }
+
+
+
+
+
+    public function updatePassword(Request $request)
+{
+    $validatedData = $request->validate([
+        'currentPassword' => 'required|string',
+        'newPassword' => 'required|string|min:8',
+        'confirmPassword' => 'required|string|same:newPassword',
+    ]);
+
+    $user = $request->user(); 
+
+    if (!Hash::check($validatedData['currentPassword'], $user->password)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'The provided current password does not match our records.'
+        ], 422);
+    }
+
+    $user->update([
+        'password' => Hash::make($validatedData['newPassword'])
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Password updated successfully!'
+    ], 200);
 }
+}
+
+

@@ -7,7 +7,7 @@ export default function AdminDashboard({ onLogout, onNavigateHome }) {
   const [error, setError] = useState(null); 
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
 
-  // 1. Fetch Users logic synced exactly with your backend response 'data.users'
+
   useEffect(() => {
     if (activeTab === 'users') {
       const token = localStorage.getItem('token');
@@ -34,7 +34,7 @@ export default function AdminDashboard({ onLogout, onNavigateHome }) {
     }
   }, [activeTab]);
 
-  // 2. Implemented toggleUserStatus to fire PATCH request to your backend route
+
   const toggleUserStatus = (userId) => {
     const token = localStorage.getItem('token');
     
@@ -52,7 +52,6 @@ export default function AdminDashboard({ onLogout, onNavigateHome }) {
       return res.json();
     })
     .then(data => {
-      // Updates state dynamically using the updated user data from controller response
       setUsers(users.map(u => u.id === userId ? data.data : u));
     })
     .catch(err => {
@@ -68,11 +67,41 @@ export default function AdminDashboard({ onLogout, onNavigateHome }) {
     }
   };
 
-  const handlePasswordSubmit = (e) => {
-    e.preventDefault();
-    alert('Password updated successfully! (Frontend state captured)');
+const handlePasswordSubmit = (e) => {
+  e.preventDefault();
+  const token = localStorage.getItem('token');
+
+  // Frontend validation quick check
+  if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+    alert("New passwords do not match!");
+    return;
+  }
+
+  fetch('http://localhost:8000/api/admin/update-password', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(passwordForm),
+  })
+  .then(res => {
+    return res.json().then(data => {
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to update password');
+      }
+      return data;
+    });
+  })
+  .then(data => {
+    alert(data.message); 
     setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-  };
+  })
+  .catch(err => {
+    alert(err.message); 
+  });
+};
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 antialiased font-sans flex flex-col justify-between">
