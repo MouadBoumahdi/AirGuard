@@ -5,9 +5,17 @@ export default function AdminDashboard({ onLogout, onNavigateHome }) {
   const [activeTab, setActiveTab] = useState('users');
   const [users, setUsers] = useState([]);
   const [error, setError] = useState(null); 
-  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
 
+  // Easy string states for the form
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
+  // ✅ New state variables to show errors and success messages on screen
+  const [formError, setFormError] = useState(null);
+  const [formSuccess, setFormSuccess] = useState(null);
+
+  // Get users
   useEffect(() => {
     if (activeTab === 'users') {
       const token = localStorage.getItem('token');
@@ -25,7 +33,6 @@ export default function AdminDashboard({ onLogout, onNavigateHome }) {
         return res.json();
       })
       .then(data => {
-        // Matches your controller response: 'users' => $managers
         setUsers(data.users || []);
       })
       .catch(err => {
@@ -34,7 +41,7 @@ export default function AdminDashboard({ onLogout, onNavigateHome }) {
     }
   }, [activeTab]);
 
-
+  // Ban / Unban
   const toggleUserStatus = (userId) => {
     const token = localStorage.getItem('token');
     
@@ -67,41 +74,50 @@ export default function AdminDashboard({ onLogout, onNavigateHome }) {
     }
   };
 
-const handlePasswordSubmit = (e) => {
-  e.preventDefault();
-  const token = localStorage.getItem('token');
+  const handlePasswordSubmit = (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
 
-  // Frontend validation quick check
-  if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-    alert("New passwords do not match!");
-    return;
-  }
+    setFormError(null);
+    setFormSuccess(null);
 
-  fetch('http://localhost:8000/api/admin/update-password', {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    body: JSON.stringify(passwordForm),
-  })
-  .then(res => {
-    return res.json().then(data => {
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to update password');
-      }
-      return data;
+    if (newPassword !== confirmPassword) {
+      setFormError("New passwords do not match!");
+      return;
+    }
+
+    fetch('http://localhost:8000/api/admin/update-password', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        currentPassword,
+        newPassword,
+        confirmPassword
+      }),
+    })
+    .then(res => {
+      return res.json().then(data => {
+        if (!res.ok) {
+          throw new Error(data.message || 'Failed to update password');
+        }
+        return data;
+      });
+    })
+    .then(data => {
+      setFormSuccess("Password updated successfully!");
+      
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    })
+    .catch(err => {
+      setFormError(err.message); 
     });
-  })
-  .then(data => {
-    alert(data.message); 
-    setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-  })
-  .catch(err => {
-    alert(err.message); 
-  });
-};
+  };
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 antialiased font-sans flex flex-col justify-between">
@@ -176,7 +192,6 @@ const handlePasswordSubmit = (e) => {
                 </button>
               </div>
 
-              {/* UNCOMMENTED STATS AND REWIRED TO !is_banned STATUS */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white border border-slate-200/60 p-5 rounded-2xl shadow-xs">
                   <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Platform Users</span>
@@ -220,7 +235,6 @@ const handlePasswordSubmit = (e) => {
                           <td className="px-5 py-4 text-slate-400 font-mono">{user.email}</td>
                           <td className="px-5 py-4 text-slate-500 uppercase font-semibold tracking-wide">{user.role || 'user'}</td>
 
-                          {/* RE-ENABLED ACCOUNT STATUS TOGGLE BUTTON */}
                           <td className="px-5 py-4">
                             <button
                               onClick={() => toggleUserStatus(user.id)}
@@ -252,36 +266,54 @@ const handlePasswordSubmit = (e) => {
               </div>
 
               <form onSubmit={handlePasswordSubmit} className="mt-8 bg-white border border-slate-200/60 rounded-2xl p-6 shadow-xs space-y-5">
+                
+                {/* ─── RENDERS ERROR ON SCREEN IF IT EXISTS ─── */}
+                {formError && (
+                  <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs font-semibold">
+                    ⚠️ {formError}
+                  </div>
+                )}
+
+                {/* ─── RENDERS SUCCESS ON SCREEN IF IT EXISTS ─── */}
+                {formSuccess && (
+                  <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-xs font-semibold">
+                    ✅ {formSuccess}
+                  </div>
+                )}
+
+                {/* 1. CURRENT PASSWORD INPUT */}
                 <div className="flex flex-col gap-2">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Current Password</label>
                   <input 
                     type="password" 
-                    value={passwordForm.currentPassword}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
                     required
                     className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-emerald-600 bg-slate-50/50" 
                     placeholder="••••••••"
                   />
                 </div>
 
+                {/* 2. NEW PASSWORD INPUT */}
                 <div className="flex flex-col gap-2">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">New Password</label>
                   <input 
                     type="password" 
-                    value={passwordForm.newPassword}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
                     required
                     className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-emerald-600 bg-slate-50/50" 
                     placeholder="Minimum 8 characters"
                   />
                 </div>
 
+                {/* 3. CONFIRM PASSWORD INPUT */}
                 <div className="flex flex-col gap-2">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Confirm New Password</label>
                   <input 
                     type="password" 
-                    value={passwordForm.confirmPassword}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                     className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:border-emerald-600 bg-slate-50/50" 
                     placeholder="••••••••"

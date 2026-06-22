@@ -52,10 +52,8 @@ public function index()
 
     public function toggleBan($id)
     {
-        // Secure it so an admin cannot accidentally ban themselves or another admin here
         $manager = User::where('role', 'environment_manager')->findOrFail($id);
 
-        // Flip the boolean switch
         $manager->is_banned = !$manager->is_banned;
         $manager->save();
 
@@ -77,7 +75,6 @@ public function index()
     $validatedData = $request->validate([
         'currentPassword' => 'required|string',
         'newPassword' => 'required|string|min:8',
-        'confirmPassword' => 'required|string|same:newPassword',
     ]);
 
     $user = $request->user(); 
