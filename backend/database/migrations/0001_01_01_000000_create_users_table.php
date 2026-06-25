@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('role', ['admin', 'viewer', 'manager'])->default('viewer');
+            $table->enum('role', ['admin', 'viewer', 'manager', 'environment_manager'])->default('viewer');
+            $table->boolean('is_banned')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });

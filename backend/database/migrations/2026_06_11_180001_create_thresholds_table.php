@@ -6,26 +6,18 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('thresholds', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('sensor_id')->constrained()->cascadeOnDelete();
-            $table->string('gas_type');
-            $table->float('critical_limit');
+            $table->string('gas_type')->unique(); // Unique so there's exactly 1 rule per gas
+            $table->decimal('max_allowed_limit', 8, 2);
+            $table->string('unit'); // e.g., ppm, ug/m3
+            $table->string('severity_level')->default('Warning'); // Warning, Critical
             $table->timestamps();
-
-            // Index/Unique constraint for performance and data integrity
-            $table->unique(['sensor_id', 'gas_type']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('thresholds');

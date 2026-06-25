@@ -5,10 +5,10 @@ import Logo from '../../assets/logo.png';
 import PlantImage from '../../assets/hero_bg.png';
 import '../../index.css';
 
-export default function AuthPage({ initialView = 'login', onClose }) {
+export default function AuthPage({ initialView = 'login', onClose, onAuthSuccess }) {
   const [isLogin, setIsLogin] = useState(initialView === 'login');
 
-  // Changes screens and saves it to localStorage so refresh doesn't break it
+
   const handleToggle = () => {
     const nextMode = !isLogin;
     setIsLogin(nextMode);
@@ -42,8 +42,11 @@ export default function AuthPage({ initialView = 'login', onClose }) {
           </p>
         </div>
 
-        {isLogin ? <LoginForm /> : <RegisterForm />}
-
+        {isLogin ? (
+          <LoginForm onLoginSuccess={onAuthSuccess} />
+        ) : (
+          <RegisterForm onRegisterSuccess={onAuthSuccess} />
+        )}
         <p className="mt-8 text-center text-sm text-slate-500">
           {isLogin ? "Don't have an account? " : "Already have an account? "}
           <button onClick={handleToggle} className="font-semibold text-green-700 hover:text-green-600 cursor-pointer">

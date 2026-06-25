@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import API from '../../api'; // Import our fresh Axios instance
 
-export default function LoginForm() {
+export default function LoginForm({ onLoginSuccess }) { 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(''); // State to hold any error responses
-  const [loading, setLoading] = useState(false); // State to handle button loading styles
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false); 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -13,23 +13,22 @@ export default function LoginForm() {
     setLoading(true);
 
     try {
-      // 1. Send data to your Laravel AuthController login method
       const response = await API.post('/login', { email, password });
-      
-      // 2. Extract the JWT token and user info from the response
+   
       const { token } = response.data.authorisation;
       const { role, name } = response.data.user;
 
-      // 3. Save them to localStorage so the browser remembers the user
       localStorage.setItem('token', token);
       localStorage.setItem('role', role);
 
-      alert(`Welcome back, ${name}! Your role is: ${role}`);
+
+      if (onLoginSuccess) {
+        onLoginSuccess(role);
+      }
       
    
 
     } catch (err) {
-      // Catch any validation or unauthorized errors from Laravel
       if (err.response && err.response.data) {
         setError(err.response.data.error || 'Invalid credentials. Please try again.');
       } else {
@@ -43,7 +42,6 @@ export default function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       
-      {/* Display error messages dynamically if they happen */}
       {error && (
         <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold p-3.5 rounded-xl">
           ⚠️ {error}
