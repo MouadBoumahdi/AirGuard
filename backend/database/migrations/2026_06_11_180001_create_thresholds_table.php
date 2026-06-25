@@ -8,12 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('thresholds', function (Blueprint $table) {
+       Schema::create('thresholds', function (Blueprint $table) {
             $table->id();
-            $table->string('gas_type')->unique(); // Unique so there's exactly 1 rule per gas
+            $table->string('gas_type')->unique(); 
             $table->decimal('max_allowed_limit', 8, 2);
-            $table->string('unit'); // e.g., ppm, ug/m3
-            $table->string('severity_level')->default('Warning'); // Warning, Critical
+            $table->string('severity_level')->default('Critical'); 
             $table->timestamps();
         });
     }
