@@ -30,7 +30,7 @@ export default function LoginForm({ onLoginSuccess }) {
 
     } catch (err) {
       if (err.response && err.response.data) {
-        setError(err.response.data.error || 'Invalid credentials. Please try again.');
+        setError(err.response.data.message || 'Invalid credentials. Please try again.');
       } else {
         setError('Cannot connect to the backend server.');
       }

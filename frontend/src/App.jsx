@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import AuthPage from './components/Auth/AuthPage';
 import AdminDashboard from './components/Dashboard/AdminDashboard';
-import ViewerDashboard from './components/Dashboard/ViewerDashboard';
 import Logo from './assets/logo.png'; 
+import AirGuardDashboard from './components/Dashboard/AirGuardDashboard';
+
 
 
 
 export default function App() {
+
+  const testDashboardUi = false; 
+
+  if (testDashboardUi) {
+    return <AirGuardDashboard />;
+  }
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -48,34 +55,19 @@ export default function App() {
           }}
           onNavigateHome={() => handleSetView('home')}
         />;
-      case 'manager':
-        return <ManagerDashboard />;
-      case 'viewer':
       default:
-        return <ViewerDashboard 
-        
-        onLogout={() => {
-              setIsLoggedIn(false);         
-              setUserRole('');              
-              handleSetView('home');        
-            }}
-            
-            />;
+        return <AirGuardDashboard />;
     }
   };
 
 
   
-  // Si vue Auth active
-  if (view === 'login' || view === 'register') {
-    return <AuthPage initialView={view} onClose={() => handleSetView('home')} 
-
-            onAuthSuccess={(role) => {
-                  setIsLoggedIn(true);           
-                  setUserRole(role);             
-                  handleSetView('dashboard');    
-                }}
-    />;
+  if (view === 'login') {
+    return <AuthPage onClose={() => handleSetView('home')} onAuthSuccess={(role) => {
+      setIsLoggedIn(true);
+      setUserRole(role);
+      handleSetView('dashboard');
+    }} />;
 
 
     
@@ -113,9 +105,6 @@ export default function App() {
                 <button onClick={() => handleSetView('login')} className="text-sm font-semibold text-slate-600 hover:text-slate-900 cursor-pointer">
                   Sign In
                 </button>
-                <button onClick={() => handleSetView('register')} className="text-sm font-semibold bg-green-800 text-white px-4 py-2 rounded-xl hover:bg-green-700 cursor-pointer transition-colors">
-                  Get Started
-                </button>
               </>
             )}
           </div>
@@ -141,8 +130,8 @@ export default function App() {
               </button>
             ) : (
               <>
-                <button onClick={() => handleSetView('register')} className="bg-green-800 text-white font-semibold text-sm px-8 py-3.5 rounded-xl shadow-md hover:bg-green-700 transition-colors cursor-pointer">
-                  Create Free Account
+                <button onClick={() => handleSetView('login')} className="bg-green-800 text-white font-semibold text-sm px-8 py-3.5 rounded-xl shadow-md hover:bg-green-700 transition-colors cursor-pointer">
+                  Sign In
                 </button>
                 <button onClick={() => handleSetView('login')} className="bg-white text-slate-700 border border-slate-200 font-semibold text-sm px-8 py-3.5 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer">
                   View Live Air Map
@@ -268,7 +257,6 @@ export default function App() {
             <h4 className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">Portals</h4>
             <div className="text-xs text-slate-400 flex flex-col gap-2">
               <a onClick={() => handleSetView('login')} className="hover:text-white cursor-pointer hover:underline">Sign In</a>
-              <a onClick={() => handleSetView('register')} className="hover:text-white cursor-pointer hover:underline">Register Account</a>
             </div>
           </div>
         </div>

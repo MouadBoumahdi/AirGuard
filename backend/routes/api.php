@@ -4,10 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-
-
 
 Route::middleware(['jwt.auth'])->prefix('admin')->group(function () {
     Route::get('/', [AdminController::class, 'index']);
