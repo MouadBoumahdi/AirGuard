@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import AuthPage from './components/Auth/AuthPage';
 import AdminDashboard from './components/Dashboard/AdminDashboard';
-import Logo from './assets/logo.png'; 
 import AirGuardDashboard from './components/Dashboard/AirGuardDashboard';
-
-
-
+import ResetPasswordForm from './components/Auth/ResetPasswordForm'; // Ensure this file path exists
+import Logo from './assets/logo.png'; 
 
 export default function App() {
-
   const testDashboardUi = false; 
 
   if (testDashboardUi) {
@@ -16,70 +13,94 @@ export default function App() {
   }
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
   const [userRole, setUserRole] = useState('');
+  const [resetParams, setResetParams] = useState({ token: '', email: '' });
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const role = localStorage.getItem('role');
-    if (token && role) {
-      setIsLoggedIn(true);
-      setUserRole(role);
-    }
-  }, []);
-
-
-
+  // Manage standard application view states
   const [view, setView] = useState(() => {
     return localStorage.getItem('activeView') || 'home';
   });
+
+  // ─── RUNTIME PARSER LOOKS FOR THE MAILTRAP URL ARGUMENTS ON BOOTUP ───
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const action = queryParams.get('action');
+    const token = queryParams.get('token');
+    const email = queryParams.get('email');
+
+    if (action === 'reset' && token && email) {
+      setResetParams({ token, email: decodeURIComponent(email) });
+      setView('reset-password'); // Force template transition
+    } else {
+      // Revert to local storage values if no query link arguments are present
+      const token = localStorage.getItem('token');
+      const role = localStorage.getItem('role');
+      if (token && role) {
+        setIsLoggedIn(true);
+        setUserRole(role);
+      }
+    }
+  }, []);
 
   const handleSetView = (newView) => {
     setView(newView);
     localStorage.setItem('activeView', newView);
   };
 
- 
-
-
-
-
   const renderDashboardByRole = () => {
     switch (userRole) {
       case 'admin':
-        return <AdminDashboard 
-          onLogout={ () => {
+        return (
+          <AdminDashboard 
+            onLogout={() => {
               setIsLoggedIn(false);
               setUserRole('');
               handleSetView('home');
-          }}
-          onNavigateHome={() => handleSetView('home')}
-        />;
+            }}
+            onNavigateHome={() => handleSetView('home')}
+          />
+        );
       default:
         return <AirGuardDashboard />;
     }
   };
 
+  // ─── TARGET OVERLAY CONDITIONAL RENDERERS ───
 
-  
-  if (view === 'login') {
-    return <AuthPage onClose={() => handleSetView('home')} onAuthSuccess={(role) => {
-      setIsLoggedIn(true);
-      setUserRole(role);
-      handleSetView('dashboard');
-    }} />;
-
-
-    
+  if (view === 'reset-password') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+        <ResetPasswordForm 
+          token={resetParams.token}
+          email={resetParams.email}
+          onResetSuccess={() => {
+            // Completely scrub url bar text arrays and redirect back to regular terminal sign in
+            window.history.replaceState({}, document.title, "/");
+            handleSetView('login');
+          }} 
+        />
+      </div>
+    );
   }
 
- 
+  if (view === 'login') {
+    return (
+      <AuthPage 
+        onClose={() => handleSetView('home')} 
+        onAuthSuccess={(role) => {
+          setIsLoggedIn(true);
+          setUserRole(role);
+          handleSetView('dashboard');
+        }} 
+      />
+    );
+  }
 
- if(view==='dashboard') {
+  if (view === 'dashboard') {
     return renderDashboardByRole();
- }
+  }
 
-// Home page
+  // Home page default landing layout template view block
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 antialiased font-sans flex flex-col justify-between">
       
@@ -91,7 +112,7 @@ export default function App() {
               <img src={Logo} alt="OCP Logo" className="h-6 w-18 object-contain" />
             </span>
             <span className="font-normal text-3xl tracking-normal font-sans text-slate-900 block select-none">
-              Air<span className="text-emerald-600">Guard</span>
+              Air<span className="text-emerald-600 font-bold">Guard</span>
             </span>
           </div>
           
@@ -101,11 +122,9 @@ export default function App() {
                 Go to Dashboard →
               </button>
             ) : (
-              <>
-                <button onClick={() => handleSetView('login')} className="text-sm font-semibold text-slate-600 hover:text-slate-900 cursor-pointer">
-                  Sign In
-                </button>
-              </>
+              <button onClick={() => handleSetView('login')} className="text-sm font-semibold text-slate-600 hover:text-slate-900 cursor-pointer">
+                Sign In
+              </button>
             )}
           </div>
         </div>
@@ -229,8 +248,6 @@ export default function App() {
             </div>
           </div>
         </div>
-
-    
       </main>
 
       {/* FOOTER */}

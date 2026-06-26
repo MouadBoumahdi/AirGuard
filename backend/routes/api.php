@@ -5,6 +5,9 @@ use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/forgot-password', [AuthController::class, 'sendResetLink']);
+Route::post('/reset-password', [AuthController::class, 'executeResetPassword']);
+
 
 Route::middleware(['jwt.auth'])->prefix('admin')->group(function () {
     Route::get('/', [AdminController::class, 'index']);
