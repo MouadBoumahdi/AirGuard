@@ -36,17 +36,17 @@ class SimulatorController extends Controller
             ]
         );
 
-        // Process data calculation based on simulation mode
         if ($mode === 'critical') {
             $concentration = $threshold->max_allowed_limit + rand(15, 60);
-            $windDirection = 'towards_city';
+            $windDirection = 'towards_city'; 
         } else {
             $concentration = rand(5, (int) $threshold->max_allowed_limit - 5);
-            $windDirection = collect(['towards_city', 'away_from_city'])->random();
+            // Use 'towards_city' instead of directional abbreviations to stay completely inside standard column parameters
+            $windDirection = 'towards_city'; 
         }
 
         // Store reading to historical timeline log
-        $airQuality = AirQuality::create([
+        $airQuality = AirQuality::updateOrCreate([
             'sensor_id' => $sensor->id,
             'gas_type' => $threshold->gas_type,
             'concentration_value' => $concentration,

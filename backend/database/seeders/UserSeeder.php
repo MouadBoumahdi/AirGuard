@@ -12,14 +12,14 @@ class UserSeeder extends Seeder
     {
         User::create([
             'name' => 'System Administrator',
-            'email' => 'admin@airquality.com',
+            'email' => 'admin@airguard.com',
             'password' => Hash::make('password123'), 
             'role' => 'admin',
         ]);
 
            User::create([
             'name' => 'Environment Manager',
-            'email' => 'env.manager@airquality.com',
+            'email' => 'env.manager@airguard.com',
             'password' => Hash::make('password123'),
             'role' => 'environment_manager',
         ]);

@@ -12,7 +12,7 @@ return new class extends Migration
             $table->foreignId('sensor_id')->constrained('gas_sensors')->onDelete('cascade');
             $table->string('gas_type');
             $table->decimal('concentration_value', 8, 2);
-            $table->enum('wind_direction', ['vers_ville', 'oppose_ville'])->default('oppose_ville');
+            $table->string('wind_direction');
             $table->timestamps(); // Génère automatiquement created_at et updated_at
         });
     }
