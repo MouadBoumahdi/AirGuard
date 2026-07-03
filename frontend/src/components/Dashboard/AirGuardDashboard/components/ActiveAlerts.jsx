@@ -28,7 +28,6 @@ export default function ActiveAlerts({ activeAlerts, onAcknowledge, PaginationCo
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <span className="text-[9px] font-black px-2 py-0.5 rounded bg-rose-50 border border-rose-200 text-rose-700 uppercase tracking-wider">Critical Breach</span>
-                                        <span className="text-[10px] font-mono font-black text-slate-400">ALT-{alert.id}</span>
                                         <span className="text-[11px] text-slate-400 font-medium">• Recorded: {alert.created_at ? new Date(alert.created_at).toLocaleTimeString() : 'N/A'}</span>
                                     </div>
                                     <h4 className="text-sm font-black text-slate-800 mt-1">{alert.message}</h4>

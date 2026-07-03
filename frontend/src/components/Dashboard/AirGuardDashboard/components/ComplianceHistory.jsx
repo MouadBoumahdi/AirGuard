@@ -37,7 +37,6 @@ export default function ComplianceHistory({ currentView, PaginationControls, ite
                         <tbody className="text-xs font-bold text-slate-600 divide-y divide-slate-100 bg-white">
                             {currentLogs.map((log) => (
                                 <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                                    <td className="py-4 px-4 font-mono text-slate-400 font-semibold">LOG-{log.id}</td>
                                     <td className="py-4 px-4 text-slate-900 font-medium">
                                         {log.date ? new Date(log.date).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
                                                     </td>

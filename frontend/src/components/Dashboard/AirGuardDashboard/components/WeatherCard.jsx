@@ -6,6 +6,11 @@ export default function WeatherCard() {
     const [liveWeather, setLiveWeather] = useState(null);
     const WEATHER_API_KEY = "f7f31a5526fe4b2883e94054261304";
 
+    const normalizeWeatherIcon = (icon) => {
+        if (!icon) return 'https://cdn.weatherapi.com/weather/64x64/day/113.png';
+        return icon.startsWith('//') ? `https:${icon}` : icon;
+    };
+
     useEffect(() => {
         const fetchWeatherTelemetry = () => {
             axios.get(`https://api.weatherapi.com/v1/forecast.json?key=${WEATHER_API_KEY}&q=Safi,Morocco&days=5`)
@@ -25,10 +30,12 @@ export default function WeatherCard() {
                             wind: data.current.wind_kph + " km/h",
                             feels_like: Math.round(data.current.feelslike_c) + "°C"
                         },
+                        icon: normalizeWeatherIcon(data.current.condition.icon),
                         forecast: data.forecast.forecastday.map(f => ({
                             day: new Date(f.date).toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'short' }),
                             status: f.day.condition.text,
-                            temp: Math.round(f.day.maxtemp_c) + "°C"
+                            temp: Math.round(f.day.maxtemp_c) + "°C",
+                            icon: normalizeWeatherIcon(f.day.condition.icon)
                         }))
                     });
                 })
@@ -42,7 +49,7 @@ export default function WeatherCard() {
 
     const activeWeather = liveWeather || {
         location: "Safi, MA", current_temp: "--°", condition: "Connecting...", time: "00:00", date: "RESETTING",
-        metrics: { clouds: "0%", humidity: "0%", wind: "0 km/h", feels_like: "--°C" }, forecast: []
+        metrics: { clouds: "0%", humidity: "0%", wind: "0 km/h", feels_like: "--°C" }, icon: 'https://cdn.weatherapi.com/weather/64x64/day/113.png', forecast: []
     };
 
     return (
@@ -70,11 +77,16 @@ export default function WeatherCard() {
                 </div>
 
                 <div className="relative z-10 my-6">
-                    <h1 className="text-7xl font-black tracking-tighter leading-none select-none">{activeWeather.current_temp}</h1>
-                    <p className="text-sm font-bold opacity-80 tracking-wide mt-2 uppercase flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        {activeWeather.condition}
-                    </p>
+                    <div className="flex items-center gap-4">
+                        <img src={activeWeather.icon} alt={activeWeather.condition || 'Weather icon'} className="h-16 w-16 object-contain" />
+                        <div>
+                            <h1 className="text-7xl font-black tracking-tighter leading-none select-none">{activeWeather.current_temp}</h1>
+                            <p className="text-sm font-bold opacity-80 tracking-wide mt-2 uppercase flex items-center gap-1.5">
+                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                {activeWeather.condition}
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -100,9 +112,12 @@ export default function WeatherCard() {
                 <div className="divide-y divide-slate-100 overflow-y-auto">
                     {activeWeather.forecast.map((item, index) => (
                         <div key={index} className="flex justify-between items-center text-xs font-bold py-4 first:pt-3 last:pb-0">
-                            <div className="flex flex-col">
-                                <span className="text-slate-800 font-black">{item.day}</span>
-                                <span className="text-[10px] text-slate-400 font-medium mt-0.5">{item.status}</span>
+                            <div className="flex items-center gap-3">
+                                <img src={item.icon} alt={item.status} className="h-10 w-10 object-contain" />
+                                <div className="flex flex-col">
+                                    <span className="text-slate-800 font-black">{item.day}</span>
+                                    <span className="text-[10px] text-slate-400 font-medium mt-0.5">{item.status}</span>
+                                </div>
                             </div>
                             <span className="text-slate-900 font-black text-sm">{item.temp}</span>
                         </div>
