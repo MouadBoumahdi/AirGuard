@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AuthPage from './components/Auth/AuthPage';
 import AdminDashboard from './components/Dashboard/AdminDashboard';
-import AirGuardDashboard from './components/Dashboard/AirGuardDashboard';
+import AirGuardDashboard from './components/Dashboard/AirGuardDashboard/AirGuardDashboard';
 import ResetPasswordForm from './components/Auth/ResetPasswordForm'; // Ensure this file path exists
 import Logo from './assets/logo.png'; 
 

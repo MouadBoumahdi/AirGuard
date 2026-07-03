@@ -15,6 +15,9 @@ Route::get('/test-simulator', function() {
 });
 
 Route::get('/manager/latest-gases', [ManagerController::class, 'getLatestGases']);
+Route::get('/manager/alerts/active', [ManagerController::class, 'getActiveAlerts']);
+Route::post('/manager/alerts/{id}/acknowledge', [ManagerController::class, 'acknowledgeAlert']);
+Route::get('/manager/alerts/history', [ManagerController::class, 'getComplianceHistory']);
 
 Route::middleware(['jwt.auth'])->prefix('admin')->group(function () {
     Route::get('/', [AdminController::class, 'index']);
