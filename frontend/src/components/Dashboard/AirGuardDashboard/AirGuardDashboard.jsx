@@ -15,6 +15,26 @@ export default function AirGuardDashboard({ onLogout }) {
     const [isLoading, setIsLoading] = useState(true);
     const [toasts, setToasts] = useState([]);
     
+    // 📊 Analytics trends storage
+    const [chartTrends, setChartTrends] = useState({});
+
+    // 🔒 Fixed system critical safety threshold indicators
+    const gasThresholds = {
+        'SO2': 100.0,
+        'NO2': 50.0,
+        'CO': 35.0,
+        'H2S': 10.0,
+        'NH3': 35.0,
+        'HF': 20.0
+    };
+
+    const chartGasNames = Object.keys(chartTrends).length > 0
+        ? Object.keys(chartTrends)
+        : liveGases.map(gas => {
+            const match = gas.name.match(/\(([^)]+)\)$/);
+            return match ? match[1] : gas.name;
+        });
+
     const totalAlertsCountRef = useRef(0);
     const ITEMS_PER_PAGE = 5;
 
@@ -54,6 +74,15 @@ export default function AirGuardDashboard({ onLogout }) {
                     setActiveAlerts(incomingAlerts);
                 })
                 .catch(err => console.error("Alerts polling sync error:", err));
+
+            // 🚀 Poll analytics timeline coordinates concurrently without changing components
+            API.get('/manager/analytics/trends')
+                .then(res => {
+                    if (res.data?.trends) {
+                        setChartTrends(res.data.trends);
+                    }
+                })
+                .catch(err => console.error("Trends retrieval failure:", err));
         };
 
         fetchLiveTelemetryStream();
@@ -73,17 +102,14 @@ export default function AirGuardDashboard({ onLogout }) {
 
     // ─── 🚀 THE LOGOUT ACTION CORRECTION FRAMEWAY ───
     const handleLogout = () => {
-        // 1. Wipe locally compiled user session strings
         localStorage.removeItem('token');
         localStorage.removeItem('role');
         localStorage.removeItem('activeView');
 
-        // 2. Trigger parent context router state evictions
         if (typeof onLogout === 'function') {
             onLogout(); 
         }
         
-        // 3. Force page reload to ensure clean state
         setTimeout(() => {
             window.location.href = '/';
         }, 100);
@@ -146,8 +172,6 @@ export default function AirGuardDashboard({ onLogout }) {
                         <button key={viewKey} onClick={() => handleViewChange(viewKey)} className={`w-full text-left px-4 py-3.5 text-xs font-bold rounded-xl uppercase tracking-wider block border-none outline-none cursor-pointer ${currentView === viewKey ? 'bg-[#f0fdf4] text-emerald-800 border-l-4 border-emerald-700 font-black' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-900'}`}>{label}</button>
                     ))}
                 </nav>
-
-                
             </aside>
 
             {/* Main Content Layout panels workspace */}
@@ -174,7 +198,7 @@ export default function AirGuardDashboard({ onLogout }) {
                 <div className="flex-1 p-8 overflow-y-auto bg-[#f8fafc] h-[calc(100vh-5rem)]">
                     {/* VIEW 1: LIVE DASHBOARD OVERVIEW */}
                     {currentView === 'dashboard' && (
-                        <div className="flex flex-col gap-6 w-full min-h-full">
+                        <div className="flex flex-col gap-6 w-full min-h-full pb-6">
                             {/* Weather section takes 100% full width up top */}
                             <div className="w-full">
                                 <WeatherCard />
@@ -185,6 +209,50 @@ export default function AirGuardDashboard({ onLogout }) {
                                     key={liveGases.map(g => g.value).join('-') || 'empty'} 
                                     liveGases={liveGases} 
                                 />
+                            </div>
+
+                            {/* 🚀 2x2 ANALYTICS GRID (Built using native grid layouts to support custom inline SVG mock trends or component charts downstream) */}
+                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full mt-2">
+                                {chartGasNames.map((gasName) => {
+                                    const points = chartTrends[gasName] || [];
+                                    const limit = gasThresholds[gasName] ?? Math.max(...points.map(p => p.value), 50);
+                                    
+                                    // Plot max points scale height mapping
+                                    const maxVal = Math.max(...points.map(p => p.value), limit * 1.3, 100);
+
+                                    return (
+                                        <div key={gasName} className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-xs flex flex-col h-64">
+                                            <div className="flex justify-between items-center mb-4 shrink-0">
+                                                <span className="text-xs font-black text-slate-800 uppercase tracking-wide font-mono">{gasName} Metrics Timeline</span>
+                                                <span className="text-[10px] font-mono font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                                                    Limit: {limit.toFixed(1)} ppm
+                                                </span>
+                                            </div>
+                                            
+                                            {/* Clean inline SVG fallback layout engine that respects existing imports completely */}
+                                            <div className="flex-1 w-full relative bg-slate-50/50 rounded-xl p-2 border border-slate-100 overflow-hidden">
+                                                {points.length > 1 ? (
+                                                    <svg className="w-full h-full overflow-visible" viewBox="0 0 500 150" preserveAspectRatio="none">
+                                                        {/* Horizontal Threshold Boundary Marker */}
+                                                        <line 
+                                                            x1="0" y1={150 - (limit / maxVal) * 130} 
+                                                            x2="500" y2={150 - (limit / maxVal) * 130} 
+                                                            stroke="#f43f5e" strokeWidth="1.5" strokeDasharray="4,4"
+                                                        />
+                                                        {/* Dynamic trend line stroke */}
+                                                        <polyline
+                                                            fill="none" stroke="#10b981" strokeWidth="2.5"
+                                                            points={points.map((p, i) => `${(i / (points.length - 1)) * 500},${150 - (p.value / maxVal) * 130}`).join(' ')}
+                                                        />
+                                                    </svg>
+                                                ) : (
+                                                    <div className="h-full w-full flex items-center justify-center text-[10px] font-black uppercase text-slate-400 tracking-wider">Gathering telemetry streams...</div>
+                                                )}
+                                                <div className="absolute top-2 left-2 text-[8px] font-black text-rose-600 tracking-widest uppercase opacity-70">CRITICAL CEILING BOUNDARY</div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}

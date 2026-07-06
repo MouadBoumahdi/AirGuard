@@ -63,7 +63,11 @@ class ManagerController extends Controller
 
     public function getTrendAnalytics()
     {
-        $gasTypes = ['SO2', 'H2S', 'NH3', 'HF'];
+        $gasTypes = AirQuality::select('gas_type')
+            ->distinct()
+            ->pluck('gas_type')
+            ->all();
+
         $trends = [];
 
         foreach ($gasTypes as $type) {
