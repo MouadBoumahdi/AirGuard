@@ -27,11 +27,9 @@ export default function ComplianceHistory({ currentView, PaginationControls, ite
                     <table className="w-full text-left border-collapse min-w-[800px]">
                         <thead className="sticky top-0 z-10 bg-slate-50 shadow-2xs">
                             <tr className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                                <th className="py-4 px-4">Log Token</th>
-                                <th className="py-4 px-4">Timestamp</th>
+                                <th className="py-4 px-4">Date</th>
                                 <th className="py-4 px-4">Analyzed Gas</th>
                                 <th className="py-4 px-4">Peak Output</th>
-                                <th className="py-4 px-4">Remediation Action</th>
                             </tr>
                         </thead>
                         <tbody className="text-xs font-bold text-slate-600 divide-y divide-slate-100 bg-white">
@@ -39,10 +37,9 @@ export default function ComplianceHistory({ currentView, PaginationControls, ite
                                 <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
                                     <td className="py-4 px-4 text-slate-900 font-medium">
                                         {log.date ? new Date(log.date).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
-                                                    </td>
+                                    </td>
                                     <td className="py-4 px-4 text-emerald-800 uppercase tracking-wider font-mono">{log.gas_type}</td>
                                     <td className="py-4 px-4 text-rose-600 font-extrabold font-mono">{log.peak_value} ppm</td>
-                                    <td className="py-4 px-4 text-slate-500 font-medium">Automated Environmental Plant Mitigation Approved</td>
                                 </tr>
                             ))}
                         </tbody>

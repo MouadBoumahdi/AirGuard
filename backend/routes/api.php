@@ -7,6 +7,7 @@ use App\Http\Controllers\ManagerController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
 Route::post('/forgot-password', [AuthController::class, 'sendResetLink']);
 Route::post('/reset-password', [AuthController::class, 'executeResetPassword']);
 

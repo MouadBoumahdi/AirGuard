@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import LoginForm from './LoginForm';
+import RegisterForm from './RegisterForm';
 import Logo from '../../assets/logo.png';
 import PlantImage from '../../assets/hero_bg.png';
 import '../../index.css';
 
 export default function AuthPage({ onClose, onAuthSuccess }) {
+  const [authView, setAuthView] = useState('login'); // 'login' or 'register'
+
   return (
     <div className="grid min-h-screen grid-cols-1 md:grid-cols-2 text-slate-800 antialiased bg-white">
       <div className="flex flex-col justify-center px-8 sm:px-16 lg:px-24 bg-white py-12 relative">
@@ -22,13 +25,34 @@ export default function AuthPage({ onClose, onAuthSuccess }) {
             </span>
           </div>
 
-          <h1 className="text-3xl font-extrabold text-slate-900">Welcome back</h1>
-          <p className="mt-2 text-sm text-slate-500">
-            Sign in to continue monitoring environmental conditions.
-          </p>
+          {authView === 'login' ? (
+            <>
+              <h1 className="text-3xl font-extrabold text-slate-900">Welcome back</h1>
+              <p className="mt-2 text-sm text-slate-500">
+                Sign in to continue monitoring environmental conditions.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-3xl font-extrabold text-slate-900">Create your account</h1>
+              <p className="mt-2 text-sm text-slate-500">
+                Join AirGuard to monitor air quality and environmental conditions.
+              </p>
+            </>
+          )}
         </div>
 
-        <LoginForm onLoginSuccess={onAuthSuccess} />
+        {authView === 'login' ? (
+          <LoginForm 
+            onLoginSuccess={onAuthSuccess}
+            onRegisterClick={() => setAuthView('register')}
+          />
+        ) : (
+          <RegisterForm 
+            onRegisterSuccess={() => setAuthView('login')}
+            onBackToLogin={() => setAuthView('login')}
+          />
+        )}
       </div>
 
       <div className="relative hidden md:block bg-slate-900 overflow-hidden select-none">

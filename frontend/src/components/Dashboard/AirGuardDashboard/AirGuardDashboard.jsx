@@ -8,7 +8,7 @@ import GasMetrics from './components/GasMetrics';
 import ActiveAlerts from './components/ActiveAlerts';
 import ComplianceHistory from './components/ComplianceHistory';
 
-export default function AirGuardDashboard() {
+export default function AirGuardDashboard({ onLogout }) {
     const [currentView, setCurrentView] = useState('dashboard');
     const [liveGases, setLiveGases] = useState([]);
     const [activeAlerts, setActiveAlerts] = useState([]);
@@ -71,6 +71,24 @@ export default function AirGuardDashboard() {
             .catch(() => showToast("❌ Mitigation sequence rejected", 'danger'));
     };
 
+    // ─── 🚀 THE LOGOUT ACTION CORRECTION FRAMEWAY ───
+    const handleLogout = () => {
+        // 1. Wipe locally compiled user session strings
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        localStorage.removeItem('activeView');
+
+        // 2. Trigger parent context router state evictions
+        if (typeof onLogout === 'function') {
+            onLogout(); 
+        }
+        
+        // 3. Force page reload to ensure clean state
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 100);
+    };
+
     const SharedPagination = ({ targetArray, currentPage, setCurrentPage, itemsPerPage }) => {
         const lastPageCalc = Math.max(1, Math.ceil(targetArray.length / itemsPerPage));
         return (
@@ -128,41 +146,48 @@ export default function AirGuardDashboard() {
                         <button key={viewKey} onClick={() => handleViewChange(viewKey)} className={`w-full text-left px-4 py-3.5 text-xs font-bold rounded-xl uppercase tracking-wider block border-none outline-none cursor-pointer ${currentView === viewKey ? 'bg-[#f0fdf4] text-emerald-800 border-l-4 border-emerald-700 font-black' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-900'}`}>{label}</button>
                     ))}
                 </nav>
+
+                
             </aside>
 
             {/* Main Content Layout panels workspace */}
             <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
                 <header className="h-20 flex items-center justify-between px-8 shrink-0 bg-white border-b border-slate-200/60 z-10">
                     <div className="text-xs font-black tracking-wider text-slate-500 uppercase">System Terminal — <span className="text-slate-400 font-medium">OCP Safi Environmental Command Center</span></div>
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl">
-                        <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                        </span>
-                        <span className="text-[10px] font-black text-emerald-800 uppercase tracking-widest font-mono">LIVE FEED SYNCED</span>
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            <span className="text-[10px] font-black text-emerald-800 uppercase tracking-widest font-mono">LIVE FEED SYNCED</span>
+                        </div>
+                        <button
+                            onClick={handleLogout}
+                            className="px-4 py-2 bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-black rounded-xl uppercase tracking-wider hover:bg-rose-100 transition-colors cursor-pointer outline-none"
+                        >
+                            Logout
+                        </button>
                     </div>
                 </header>
 
                 <div className="flex-1 p-8 overflow-y-auto bg-[#f8fafc] h-[calc(100vh-5rem)]">
                     {/* VIEW 1: LIVE DASHBOARD OVERVIEW */}
-                        {currentView === 'dashboard' && (
-                            <div className="flex flex-col gap-6 w-full min-h-full">
-                                
-                                {/* Weather section takes 100% full width up top */}
-                                <div className="w-full">
-                                    <WeatherCard />
-                                </div>
-                                
-                                {/* 🚀 FIX: Adding a unique key derived from liveGases length/values forces an instant React DOM update whenever values change */}
-                                <div className="w-full">
-                                    <GasMetrics 
-                                        key={liveGases.map(g => g.value).join('-') || 'empty'} 
-                                        liveGases={liveGases} 
-                                    />
-                                </div>
-                                
+                    {currentView === 'dashboard' && (
+                        <div className="flex flex-col gap-6 w-full min-h-full">
+                            {/* Weather section takes 100% full width up top */}
+                            <div className="w-full">
+                                <WeatherCard />
                             </div>
-                        )}
+                            
+                            <div className="w-full">
+                                <GasMetrics 
+                                    key={liveGases.map(g => g.value).join('-') || 'empty'} 
+                                    liveGases={liveGases} 
+                                />
+                            </div>
+                        </div>
+                    )}
 
                     {currentView === 'alerts' && (
                         <ActiveAlerts 

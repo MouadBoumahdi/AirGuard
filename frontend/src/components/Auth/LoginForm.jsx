@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import API from '../../api'; // Import our fresh Axios instance
 
-export default function LoginForm({ onLoginSuccess }) { 
+export default function LoginForm({ onLoginSuccess, onRegisterClick }) { 
   // Modes available: 'login' or 'forgot'
   const [authMode, setAuthMode] = useState('login'); 
   
@@ -153,6 +153,20 @@ export default function LoginForm({ onLoginSuccess }) {
         </span>
         {!loading && <span className="transition-transform group-hover:translate-x-0.5">→</span>}
       </button>
+
+      {/* REGISTRATION LINK - ONLY SHOW ON LOGIN MODE */}
+      {authMode === 'login' && (
+        <div className="text-center text-xs text-slate-500 pt-2 border-t border-slate-200">
+          Don't have an account?{' '}
+          <button
+            type="button"
+            onClick={onRegisterClick}
+            className="font-bold text-emerald-700 hover:text-emerald-800 transition-colors cursor-pointer bg-transparent border-none outline-none"
+          >
+            Sign Up
+          </button>
+        </div>
+      )}
     </form>
   );
 }

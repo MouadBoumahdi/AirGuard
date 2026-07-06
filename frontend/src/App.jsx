@@ -12,8 +12,12 @@ export default function App() {
     return <AirGuardDashboard />;
   }
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+    return Boolean(token && role);
+  });
+  const [userRole, setUserRole] = useState(() => localStorage.getItem('role') || '');
   const [resetParams, setResetParams] = useState({ token: '', email: '' });
 
   // Manage standard application view states
@@ -61,7 +65,15 @@ export default function App() {
           />
         );
       default:
-        return <AirGuardDashboard />;
+        return (
+          <AirGuardDashboard 
+            onLogout={() => {
+              setIsLoggedIn(false);
+              setUserRole('');
+              handleSetView('home');
+            }}
+          />
+        );
     }
   };
 
@@ -97,6 +109,18 @@ export default function App() {
   }
 
   if (view === 'dashboard') {
+    // Protect dashboard - require authentication
+    if (!isLoggedIn || !userRole) {
+      // If not logged in, redirect to login
+      return <AuthPage 
+        onClose={() => handleSetView('home')} 
+        onAuthSuccess={(role) => {
+          setIsLoggedIn(true);
+          setUserRole(role);
+          handleSetView('dashboard');
+        }} 
+      />;
+    }
     return renderDashboardByRole();
   }
 

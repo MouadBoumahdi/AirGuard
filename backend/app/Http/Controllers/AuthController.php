@@ -128,4 +128,31 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Successfully logged out']);
     }
+
+    public function register(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => 'environment_manager', // Default role for new registrations
+            'is_banned' => false,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Account created successfully! Please sign in with your credentials.',
+            'user' => $user
+        ], 201);
+    }
 }
