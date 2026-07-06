@@ -61,6 +61,29 @@ class ManagerController extends Controller
         ]);
     }
 
+    public function getTrendAnalytics()
+    {
+        $gasTypes = ['SO2', 'H2S', 'NH3', 'HF'];
+        $trends = [];
+
+        foreach ($gasTypes as $type) {
+            $readings = AirQuality::where('gas_type', $type)
+                ->orderByDesc('created_at')
+                ->limit(10)
+                ->get()
+                ->reverse()
+                ->values();
+
+            $trends[$type] = $readings->map(function ($reading) {
+                return [
+                    'timestamp' => $reading->created_at ? $reading->created_at->format('H:i') : null,
+                    'value' => (float) $reading->concentration_value,
+                ];
+            })->all();
+        }
+
+        return response()->json(['trends' => $trends]);
+    }
 
 
     public function acknowledgeAlert($id)
