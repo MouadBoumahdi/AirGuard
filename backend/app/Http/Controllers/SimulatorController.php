@@ -6,10 +6,15 @@ use App\Models\GasSensor;
 use App\Models\AirQuality;
 use App\Models\Threshold;
 use App\Models\Alert;
+use App\Models\User;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\CriticalGasLeakAlert;
+use Exception;
+use Illuminate\Support\Facades\Log;
 
 class SimulatorController extends Controller
 {
-   public function generateDynamicData($mode)
+    public function generateDynamicData($mode = 'normal')
     {
         // Ensure default thresholds exist in DB
         if (Threshold::count() === 0) {
@@ -37,11 +42,9 @@ class SimulatorController extends Controller
         );
 
         if ($mode === 'critical') {
-            // 🚀 GUARANTEED SPIKE: Force concentration way above the database limit
-            $concentration = $threshold->max_allowed_limit + rand(50, 150);
+            $concentration = $threshold->max_allowed_limit + rand(15, 60);
             $windDirection = 'towards_city'; 
         } else {
-            // Safe normal concentration under the limit
             $concentration = rand(5, (int) $threshold->max_allowed_limit - 5);
             $windDirection = 'towards_city'; 
         }
@@ -54,11 +57,9 @@ class SimulatorController extends Controller
             'wind_direction' => $windDirection
         ]);
 
-        // Raise a live alert if thresholds are violated or reached (>=)
+        // Raise a live alert if thresholds are reached or exceeded
         $alertTriggered = false;
         if ($airQuality->concentration_value >= $threshold->max_allowed_limit && $airQuality->wind_direction === 'towards_city') {
-            
-            // 1. Create the alert entry in our database
             $alert = Alert::create([
                 'air_quality_id' => $airQuality->id,
                 'manager_id' => null,
@@ -66,15 +67,14 @@ class SimulatorController extends Controller
                 'status' => 'active'
             ]);
 
-            // 2. ⚡ FIRE AUTOMATED EMAILS TO ENVIRONMENT MANAGERS
+            // ⚡ FIX: Automated Notification Dispatch
             try {
-                // 🔎 MATCHES YOUR DATABASE ROW: 'environment_manager'
                 $managers = User::where('role', 'environment_manager')->get();
                 if ($managers->isNotEmpty()) {
-                    Notification::send($managers, new \App\Notifications\CriticalGasLeakAlert($alert));
+                    Notification::send($managers, new CriticalGasLeakAlert($alert));
                 }
-            } catch (\Exception $e) {
-                \Log::error("Automated Alert Email Error: " . $e->getMessage());
+            } catch (Exception $e) {
+                Log::error("Automated Alert Email Failed: " . $e->getMessage());
             }
 
             $alertTriggered = true;

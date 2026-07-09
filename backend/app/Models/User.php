@@ -42,4 +42,16 @@ class User extends Authenticatable implements JWTSubject
             'role' => $this->role
         ];
     }
+
+
+
+    /**
+ * Route notifications for the mail channel.
+ */
+public function routeNotificationForMail($notification): string
+{
+    // 💡 If your table column is named 'email', return $this->email;
+    // 💡 If it's something else like 'user_email', change it below:
+    return $this->email; 
+}
 }

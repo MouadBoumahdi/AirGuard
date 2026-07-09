@@ -4,19 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Models\AirQuality;
 use App\Models\Alert;
+use App\Models\Threshold;
+use Illuminate\Http\JsonResponse;
 
 class ManagerController extends Controller
 {
-    public function getLatestGases()
+    public function getLatestGases(): JsonResponse
     {
-        $gasTypes = ['SO2', 'H2S', 'NH3', 'HF'];
+        // 📌 ENFORCE ORDER CONFIGURATION: Explicit chart sequencing mapping starting with SO2
+        $orderedGasTypes = ['SO2', 'H2S', 'NH3', 'HF'];
         $formattedGases = [];
 
-        foreach ($gasTypes as $type) {
+        foreach ($orderedGasTypes as $type) {
             $latestReading = AirQuality::where('gas_type', $type)
                 ->orderByDesc('created_at')
                 ->orderByDesc('id')
                 ->first();
+
+            $threshold = Threshold::where('gas_type', $type)->first();
 
             $fullName = match($type) {
                 'SO2' => 'Sulfur Dioxide (SO2)',
@@ -26,23 +31,22 @@ class ManagerController extends Controller
                 default => $type
             };
 
-            $value = $latestReading ? number_format((float) $latestReading->concentration_value, 2, '.', '') . ' ppm' : '0.0 ppm';
-
+            // 🚀 CLEAN CODES & PURE FLOATS WITH DB LIMIT
             $formattedGases[] = [
-                'name' => $fullName,
-                'value' => $value
+                'name'  => $fullName,
+                'value' => $latestReading ? (float) $latestReading->concentration_value : 0.0,
+                'limit' => $threshold ? (float) $threshold->max_allowed_limit : 50.0
             ];
         }
 
-        return response()->json(['gases' => $formattedGases]);
+        return response()->json([
+            'success' => true,
+            'gases'   => $formattedGases
+        ]);
     }
 
-
-
-
-    public function getActiveAlerts()
+    public function getActiveAlerts(): JsonResponse
     {
-        // Simply join the alerts table directly with air_qualities
         $alerts = Alert::join('air_qualities', 'alerts.air_quality_id', '=', 'air_qualities.id')
             ->where('alerts.status', 'active')
             ->select(
@@ -61,13 +65,10 @@ class ManagerController extends Controller
         ]);
     }
 
-    public function getTrendAnalytics()
+    public function getTrendAnalytics(): JsonResponse
     {
-        $gasTypes = AirQuality::select('gas_type')
-            ->distinct()
-            ->pluck('gas_type')
-            ->all();
-
+        // Maintains matching custom order keys for chart arrays
+        $gasTypes = ['SO2', 'H2S', 'NH3', 'HF'];
         $trends = [];
 
         foreach ($gasTypes as $type) {
@@ -89,8 +90,7 @@ class ManagerController extends Controller
         return response()->json(['trends' => $trends]);
     }
 
-
-    public function acknowledgeAlert($id)
+    public function acknowledgeAlert($id): JsonResponse
     {
         $alert = Alert::find($id);
 
@@ -98,10 +98,9 @@ class ManagerController extends Controller
             return response()->json(['message' => 'Alert token not found'], 404);
         }
 
-        // Instead of deleting it, we change the status to historical log format
         $alert->update([
             'status' => 'acknowledged',
-            'manager_id' => 1 // Temporary fallback manager profile assignment ID
+            'manager_id' => 1
         ]);
 
         return response()->json([
@@ -110,17 +109,13 @@ class ManagerController extends Controller
         ]);
     }
 
-
-
-
-    public function getComplianceHistory()
+    public function getComplianceHistory(): JsonResponse
     {
-        // Fetch everything that has been acknowledged and cleared by managers
         $logs = Alert::join('air_qualities', 'alerts.air_quality_id', '=', 'air_qualities.id')
             ->where('alerts.status', 'acknowledged')
             ->select(
                 'alerts.id',
-                'alerts.updated_at as date', // The moment it was cleared
+                'alerts.updated_at as date',
                 'air_qualities.gas_type',
                 'air_qualities.concentration_value as peak_value'
             )
@@ -130,5 +125,5 @@ class ManagerController extends Controller
         return response()->json([
             'logs' => $logs
         ]);
-}
+    }
 }
