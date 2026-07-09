@@ -9,7 +9,7 @@ use App\Models\Alert;
 
 class SimulatorController extends Controller
 {
-    public function generateDynamicData($mode = 'normal')
+   public function generateDynamicData($mode)
     {
         // Ensure default thresholds exist in DB
         if (Threshold::count() === 0) {
@@ -37,11 +37,12 @@ class SimulatorController extends Controller
         );
 
         if ($mode === 'critical') {
-            $concentration = $threshold->max_allowed_limit + rand(15, 60);
+            // 🚀 GUARANTEED SPIKE: Force concentration way above the database limit
+            $concentration = $threshold->max_allowed_limit + rand(50, 150);
             $windDirection = 'towards_city'; 
         } else {
+            // Safe normal concentration under the limit
             $concentration = rand(5, (int) $threshold->max_allowed_limit - 5);
-            // Use 'towards_city' instead of directional abbreviations to stay completely inside standard column parameters
             $windDirection = 'towards_city'; 
         }
 
@@ -53,15 +54,29 @@ class SimulatorController extends Controller
             'wind_direction' => $windDirection
         ]);
 
-        // Raise a live alert if thresholds are violated with wind moving towards city
+        // Raise a live alert if thresholds are violated or reached (>=)
         $alertTriggered = false;
-        if ($airQuality->concentration_value > $threshold->max_allowed_limit && $airQuality->wind_direction === 'towards_city') {
-            Alert::create([
+        if ($airQuality->concentration_value >= $threshold->max_allowed_limit && $airQuality->wind_direction === 'towards_city') {
+            
+            // 1. Create the alert entry in our database
+            $alert = Alert::create([
                 'air_quality_id' => $airQuality->id,
                 'manager_id' => null,
                 'message' => "AUTOMATED DETECTOR WARNING: An unpredicted toxic leak event has occurred for {$threshold->gas_type} at {$concentration} ppm blowing directly into municipal zones.",
                 'status' => 'active'
             ]);
+
+            // 2. ⚡ FIRE AUTOMATED EMAILS TO ENVIRONMENT MANAGERS
+            try {
+                // 🔎 MATCHES YOUR DATABASE ROW: 'environment_manager'
+                $managers = User::where('role', 'environment_manager')->get();
+                if ($managers->isNotEmpty()) {
+                    Notification::send($managers, new \App\Notifications\CriticalGasLeakAlert($alert));
+                }
+            } catch (\Exception $e) {
+                \Log::error("Automated Alert Email Error: " . $e->getMessage());
+            }
+
             $alertTriggered = true;
         }
 
